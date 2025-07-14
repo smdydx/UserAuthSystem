@@ -3,7 +3,7 @@ User-related Pydantic schemas
 """
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, EmailStr, validator
+from pydantic import BaseModel, EmailStr, field_validator
 from app.models.user import UserRole
 
 
@@ -18,7 +18,8 @@ class UserCreate(UserBase):
     password: str
     role: Optional[UserRole] = UserRole.CUSTOMER
     
-    @validator('password')
+    @field_validator('password')
+    @classmethod
     def validate_password(cls, v):
         """Validate password during creation"""
         from app.core.security import validate_password
@@ -54,7 +55,7 @@ class UserResponse(UserBase):
     email_verified_at: Optional[datetime] = None
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class UserProfile(BaseModel):
@@ -68,7 +69,7 @@ class UserProfile(BaseModel):
     last_login: Optional[datetime] = None
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class PasswordChangeRequest(BaseModel):
@@ -76,7 +77,8 @@ class PasswordChangeRequest(BaseModel):
     current_password: str
     new_password: str
     
-    @validator('new_password')
+    @field_validator('new_password')
+    @classmethod
     def validate_new_password(cls, v):
         """Validate new password"""
         from app.core.security import validate_password
