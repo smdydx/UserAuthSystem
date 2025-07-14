@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     PASSWORD_REQUIRE_SPECIAL: bool = True
     
     # Database Settings
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./auth_system.db")
+    DATABASE_URL: str = "sqlite:///./auth_system.db"  # Force SQLite for local development
     
     # Email Settings
     SMTP_HOST: str = os.getenv("SMTP_HOST", "smtp.gmail.com")
