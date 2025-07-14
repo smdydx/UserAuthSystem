@@ -15,7 +15,9 @@ from app.schemas.token import (
     PasswordResetRequest,
     PasswordResetConfirm
 )
+from app.schemas.otp import OTPRequest, OTPVerifyRequest, PasswordResetWithOTP, OTPResponse
 from app.services.auth_service import AuthService
+from app.services.otp_service import OTPService
 from app.utils.exceptions import CustomHTTPException
 
 router = APIRouter()
@@ -249,3 +251,110 @@ async def get_current_user(
 async def auth_health():
     """Health check for authentication service"""
     return {"status": "healthy", "service": "authentication"}
+
+
+@router.post("/send-password-reset-otp", response_model=OTPResponse)
+async def send_password_reset_otp(
+    otp_data: OTPRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Send OTP for password reset
+    
+    - **email**: Email address to send OTP to
+    """
+    otp_service = OTPService(db)
+    try:
+        success = otp_service.send_password_reset_otp(otp_data.email)
+        if success:
+            return OTPResponse(
+                message="Password reset OTP sent successfully",
+                expires_in_minutes=10
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to send OTP"
+            )
+    except CustomHTTPException:
+        raise
+    except Exception as e:
+        # Always return success to prevent email enumeration
+        return OTPResponse(
+            message="Password reset OTP sent successfully",
+            expires_in_minutes=10
+        )
+
+
+@router.post("/verify-password-reset-otp")
+async def verify_password_reset_otp(
+    otp_data: OTPVerifyRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Verify OTP for password reset
+    
+    - **email**: Email address
+    - **otp_code**: 6-digit OTP code
+    """
+    otp_service = OTPService(db)
+    try:
+        success = otp_service.verify_otp(otp_data.email, otp_data.otp_code)
+        if success:
+            return {"message": "OTP verified successfully", "verified": True}
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="OTP verification failed"
+            )
+    except CustomHTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="OTP verification failed"
+        )
+
+
+@router.post("/reset-password-with-otp")
+async def reset_password_with_otp(
+    reset_data: PasswordResetWithOTP,
+    db: Session = Depends(get_db)
+):
+    """
+    Reset password using verified OTP
+    
+    - **email**: Email address
+    - **otp_code**: 6-digit OTP code
+    - **new_password**: New password meeting strength requirements
+    """
+    otp_service = OTPService(db)
+    auth_service = AuthService(db)
+    
+    try:
+        # First verify OTP is still valid and verified
+        if not otp_service.is_otp_verified(reset_data.email):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="OTP must be verified first"
+            )
+        
+        # Reset password using existing auth service logic
+        success = auth_service.reset_password_direct(reset_data.email, reset_data.new_password)
+        
+        if success:
+            # Mark OTP as used
+            otp_service.mark_otp_as_used(reset_data.email)
+            return {"message": "Password reset successfully"}
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Password reset failed"
+            )
+    except CustomHTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Password reset failed"
+        )

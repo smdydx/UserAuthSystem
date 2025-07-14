@@ -284,3 +284,69 @@ class EmailService:
         """
         
         return self._send_email(email, subject, html_content, text_content)
+
+    def send_password_reset_otp(self, email: str, full_name: str, otp_code: str) -> bool:
+        """Send OTP for password reset verification"""
+        subject = f"Password Reset OTP - {settings.PROJECT_NAME}"
+        
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>Password Reset OTP</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                .header {{ background-color: #dc3545; color: white; padding: 20px; text-align: center; }}
+                .content {{ padding: 30px; background-color: #f8f9fa; }}
+                .otp-box {{ 
+                    background-color: #fff; border: 2px solid #dc3545; 
+                    padding: 20px; text-align: center; border-radius: 10px; 
+                    margin: 20px 0; font-size: 32px; font-weight: bold;
+                    color: #dc3545; letter-spacing: 10px;
+                }}
+                .footer {{ padding: 20px; text-align: center; color: #666; font-size: 14px; }}
+                .warning {{ background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 5px; margin: 20px 0; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>🔐 Password Reset OTP</h1>
+                </div>
+                <div class="content">
+                    <h2>Hello {full_name},</h2>
+                    <p>Please use this OTP to reset your password:</p>
+                    <div class="otp-box">{otp_code}</div>
+                    <div class="warning">
+                        <p><strong>Important:</strong></p>
+                        <ul>
+                            <li>Valid for <strong>10 minutes only</strong></li>
+                            <li>You have <strong>3 attempts</strong></li>
+                            <li>Do not share this OTP</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="footer">
+                    <p>© 2025 {settings.PROJECT_NAME}. All rights reserved.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        text_content = f"""
+        Hello {full_name},
+        
+        Your Password Reset OTP: {otp_code}
+        
+        Important:
+        - Valid for 10 minutes only
+        - You have 3 attempts
+        - Do not share this OTP
+        
+        © 2025 {settings.PROJECT_NAME}. All rights reserved.
+        """
+        
+        return self._send_email(email, subject, html_content, text_content)

@@ -446,3 +446,36 @@ class AuthService:
                 detail="Failed to send reset email",
                 error_code="EMAIL_SEND_FAILED"
             )
+
+    def reset_password_direct(self, email: str, new_password: str) -> bool:
+        """
+        Reset password directly (for OTP-verified users)
+        """
+        # Find user
+        user = self.db.query(User).filter(User.email == email).first()
+        if not user:
+            raise CustomHTTPException(
+                status_code=404,
+                detail="User not found",
+                error_code="USER_NOT_FOUND"
+            )
+        
+        # Update password
+        user.hashed_password = get_password_hash(new_password)
+        user.password_reset_at = datetime.utcnow()
+        
+        # Revoke all refresh tokens for security
+        refresh_tokens = (
+            self.db.query(RefreshToken)
+            .filter(RefreshToken.user_id == user.id)
+            .filter(RefreshToken.is_active == True)
+            .all()
+        )
+        
+        for refresh_token in refresh_tokens:
+            refresh_token.revoke()
+        
+        self.db.commit()
+        
+        logger.info(f"Password reset successfully (OTP verified): {user.email}")
+        return True
