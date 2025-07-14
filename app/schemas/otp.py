@@ -1,12 +1,21 @@
 """
 OTP-related Pydantic schemas
 """
+from typing import Optional, Literal
 from pydantic import BaseModel, field_validator
 
 
 class OTPRequest(BaseModel):
     """Schema for OTP request"""
     email: str
+    method: Optional[Literal["email", "sms"]] = "email"  # Default to email
+
+
+class SMSOTPRequest(BaseModel):
+    """Schema for SMS OTP request"""
+    email: str
+    phone_number: str
+    method: Literal["sms"] = "sms"
 
 
 class OTPVerifyRequest(BaseModel):

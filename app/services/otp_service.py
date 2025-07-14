@@ -12,6 +12,7 @@ from app.models.otp import OTPVerification
 from app.models.user import User
 from app.utils.exceptions import CustomHTTPException
 from app.services.email_service import EmailService
+from app.services.sms_service import SMSService
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +23,7 @@ class OTPService:
     def __init__(self, db: Session):
         self.db = db
         self.email_service = EmailService()
+        self.sms_service = SMSService()
     
     def generate_otp(self, length: int = 6) -> str:
         """Generate random OTP code"""
@@ -80,6 +82,80 @@ class OTPService:
                 status_code=500,
                 detail="Failed to send OTP email",
                 error_code="EMAIL_SEND_FAILED"
+            )
+    
+    def send_sms_otp(self, email: str, phone_number: str) -> bool:
+        """
+        Send OTP via SMS for password reset
+        """
+        # Find user
+        user = self.db.query(User).filter(User.email == email).first()
+        if not user:
+            # Don't reveal if email exists - security best practice
+            return True
+        
+        # Validate phone number
+        if not self.sms_service.validate_phone_number(phone_number):
+            raise CustomHTTPException(
+                status_code=400,
+                detail="Invalid phone number format",
+                error_code="INVALID_PHONE_NUMBER"
+            )
+        
+        # Update user's phone number if different
+        formatted_phone = self.sms_service.format_phone_number(phone_number)
+        if user.phone_number != formatted_phone:
+            user.phone_number = formatted_phone
+            self.db.commit()
+        
+        # Deactivate any existing OTPs
+        existing_otps = (
+            self.db.query(OTPVerification)
+            .filter(OTPVerification.email == email)
+            .filter(OTPVerification.is_used == False)
+            .all()
+        )
+        
+        for otp in existing_otps:
+            otp.mark_as_used()
+        
+        # Generate new OTP
+        otp_code = self.generate_otp()
+        
+        # Create OTP record
+        otp_verification = OTPVerification(
+            email=email,
+            otp_code=otp_code,
+            user_id=user.id,
+            expires_at=datetime.utcnow() + timedelta(minutes=10)  # 10 minutes expiry
+        )
+        
+        self.db.add(otp_verification)
+        self.db.commit()
+        
+        # Send OTP via SMS
+        try:
+            success = self.sms_service.send_otp_sms(
+                phone_number=formatted_phone,
+                otp_code=otp_code,
+                full_name=user.full_name or user.email
+            )
+            
+            if success:
+                logger.info(f"Password reset OTP sent via SMS to: {phone_number}")
+                return True
+            else:
+                raise Exception("SMS service returned false")
+                
+        except Exception as e:
+            logger.error(f"Failed to send OTP SMS: {str(e)}")
+            # Mark OTP as used since SMS failed
+            otp_verification.mark_as_used()
+            self.db.commit()
+            raise CustomHTTPException(
+                status_code=500,
+                detail="Failed to send OTP SMS",
+                error_code="SMS_SEND_FAILED"
             )
     
     def verify_otp(self, email: str, otp_code: str) -> bool:

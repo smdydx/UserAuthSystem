@@ -23,6 +23,7 @@ from app.core.security import (
 from app.core.config import settings
 from app.utils.exceptions import CustomHTTPException
 from app.services.email_service import EmailService
+from app.services.rate_limit_service import RateLimitService
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +54,7 @@ class AuthService:
             email=user_data.email,
             hashed_password=hashed_password,
             full_name=user_data.full_name,
+            phone_number=user_data.phone_number,
             role=user_data.role or UserRole.CUSTOMER,
             is_active=True,
             is_verified=False
@@ -84,8 +86,34 @@ class AuthService:
                 error_code="INVALID_CREDENTIALS"
             )
         
+        # Check if user account is locked
+        lockout = RateLimitService.check_user_lockout(self.db, user.id, user.email)
+        if lockout:
+            time_remaining = lockout.time_until_unlock()
+            if time_remaining.total_seconds() > 0:
+                minutes_remaining = int(time_remaining.total_seconds() / 60)
+                raise CustomHTTPException(
+                    status_code=423,  # Locked
+                    detail=f"Account locked due to failed login attempts. Try again in {minutes_remaining} minutes.",
+                    error_code="ACCOUNT_LOCKED"
+                )
+        
         # Verify password
         if not verify_password(login_data.password, user.hashed_password):
+            # Track failed login attempt
+            client_ip = RateLimitService.get_client_ip(request)
+            user_agent = RateLimitService.get_user_agent(request)
+            
+            RateLimitService.track_failed_login(
+                db=self.db,
+                user_id=user.id,
+                email=user.email,
+                ip_address=client_ip,
+                user_agent=user_agent,
+                max_attempts=5,  # Lock after 5 failed attempts
+                lockout_duration_minutes=30  # 30 minute lockout
+            )
+            
             raise CustomHTTPException(
                 status_code=401,
                 detail="Invalid email or password",
@@ -99,6 +127,9 @@ class AuthService:
                 detail="Account is disabled",
                 error_code="ACCOUNT_DISABLED"
             )
+        
+        # Clear any existing failed login attempts on successful login
+        RateLimitService.clear_successful_login(self.db, user.id)
         
         # Create tokens
         access_token = create_access_token(

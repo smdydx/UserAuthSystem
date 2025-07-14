@@ -15,4 +15,5 @@ dependencies = [
     "python-multipart>=0.0.20",
     "sqlalchemy>=2.0.41",
     "uvicorn>=0.35.0",
+    "twilio>=9.6.5",
 ]

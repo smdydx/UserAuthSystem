@@ -24,6 +24,7 @@ class User(Base):
     email = Column(String(255), unique=True, index=True, nullable=False)
     hashed_password = Column(String(255), nullable=False)
     full_name = Column(String(255), nullable=True)
+    phone_number = Column(String(20), nullable=True)  # For SMS OTP
     
     # User status
     is_active = Column(Boolean, default=True)
@@ -49,6 +50,7 @@ class User(Base):
     email_verification_tokens = relationship("EmailVerificationToken", back_populates="user", cascade="all, delete-orphan")
     password_reset_tokens = relationship("PasswordResetToken", back_populates="user", cascade="all, delete-orphan")
     otp_verifications = relationship("OTPVerification", back_populates="user", cascade="all, delete-orphan")
+    lockouts = relationship("UserLockout", back_populates="user", cascade="all, delete-orphan")
     
     def __repr__(self):
         return f"<User(id={self.id}, email='{self.email}', role='{self.role}')>"

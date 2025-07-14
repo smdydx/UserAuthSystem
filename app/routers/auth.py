@@ -15,9 +15,10 @@ from app.schemas.token import (
     PasswordResetRequest,
     PasswordResetConfirm
 )
-from app.schemas.otp import OTPRequest, OTPVerifyRequest, PasswordResetWithOTP, OTPResponse
+from app.schemas.otp import OTPRequest, OTPVerifyRequest, PasswordResetWithOTP, OTPResponse, SMSOTPRequest
 from app.services.auth_service import AuthService
 from app.services.otp_service import OTPService
+from app.services.rate_limit_service import RateLimitService
 from app.utils.exceptions import CustomHTTPException
 
 router = APIRouter()
@@ -65,6 +66,22 @@ async def login(
     
     Returns access token and refresh token
     """
+    # Check rate limiting for login attempts
+    client_ip = RateLimitService.get_client_ip(request)
+    is_rate_limited, _ = RateLimitService.check_login_rate_limit(
+        db=db,
+        identifier=client_ip,
+        max_login_attempts=10,
+        window_hours=1
+    )
+    
+    if is_rate_limited:
+        raise CustomHTTPException(
+            status_code=429,
+            detail="Too many login attempts. Please try again later.",
+            error_code="RATE_LIMITED"
+        )
+    
     auth_service = AuthService(db)
     try:
         return auth_service.authenticate_user(login_data, request)
@@ -256,19 +273,46 @@ async def auth_health():
 @router.post("/send-password-reset-otp", response_model=OTPResponse)
 async def send_password_reset_otp(
     otp_data: OTPRequest,
+    request: Request,
     db: Session = Depends(get_db)
 ):
     """
-    Send OTP for password reset
+    Send OTP for password reset via email or SMS
     
     - **email**: Email address to send OTP to
+    - **method**: "email" or "sms" (default: email)
     """
+    # Check OTP rate limiting
+    is_rate_limited, rate_limit = RateLimitService.check_otp_rate_limit(
+        db=db,
+        email=otp_data.email,
+        max_otp_requests=3,
+        window_hours=1
+    )
+    
+    if is_rate_limited:
+        raise CustomHTTPException(
+            status_code=429,
+            detail="Too many OTP requests. Please try again later.",
+            error_code="OTP_RATE_LIMITED"
+        )
+    
     otp_service = OTPService(db)
     try:
-        success = otp_service.send_password_reset_otp(otp_data.email)
+        if otp_data.method == "email":
+            success = otp_service.send_password_reset_otp(otp_data.email)
+            message = "Password reset OTP sent to your email successfully"
+        else:
+            # For SMS, we need phone number - this should use SMSOTPRequest instead
+            raise CustomHTTPException(
+                status_code=400,
+                detail="For SMS OTP, use /send-sms-otp endpoint with phone number",
+                error_code="INVALID_SMS_REQUEST"
+            )
+        
         if success:
             return OTPResponse(
-                message="Password reset OTP sent successfully",
+                message=message,
                 expires_in_minutes=10
             )
         else:
@@ -282,6 +326,56 @@ async def send_password_reset_otp(
         # Always return success to prevent email enumeration
         return OTPResponse(
             message="Password reset OTP sent successfully",
+            expires_in_minutes=10
+        )
+
+
+@router.post("/send-sms-otp", response_model=OTPResponse)
+async def send_sms_otp(
+    otp_data: SMSOTPRequest,
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """
+    Send OTP for password reset via SMS
+    
+    - **email**: Email address (to identify user)
+    - **phone_number**: Phone number to send SMS to
+    """
+    # Check OTP rate limiting
+    is_rate_limited, rate_limit = RateLimitService.check_otp_rate_limit(
+        db=db,
+        email=otp_data.email,
+        max_otp_requests=3,
+        window_hours=1
+    )
+    
+    if is_rate_limited:
+        raise CustomHTTPException(
+            status_code=429,
+            detail="Too many OTP requests. Please try again later.",
+            error_code="OTP_RATE_LIMITED"
+        )
+    
+    otp_service = OTPService(db)
+    try:
+        success = otp_service.send_sms_otp(otp_data.email, otp_data.phone_number)
+        if success:
+            return OTPResponse(
+                message="Password reset OTP sent to your phone successfully",
+                expires_in_minutes=10
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to send SMS OTP"
+            )
+    except CustomHTTPException:
+        raise
+    except Exception as e:
+        # Always return success to prevent information disclosure
+        return OTPResponse(
+            message="Password reset OTP sent to your phone successfully",
             expires_in_minutes=10
         )
 

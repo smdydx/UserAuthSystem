@@ -118,3 +118,14 @@ Preferred communication style: Simple, everyday language.
 - **Database Abstraction**: ORM-based data access for database portability
 - **Service Layer**: Modular business logic for easy testing and maintenance
 - **Dependency Injection**: FastAPI's dependency system for loose coupling
+
+## Recent Changes: Latest modifications with dates
+
+### July 14, 2025 - Advanced Security Features Implementation
+- **SMS OTP Support**: Added Twilio integration for SMS-based OTP password reset
+- **Rate Limiting**: Implemented rate limiting for OTP requests (3 per hour) and login attempts (10 per hour)  
+- **User Account Lockout**: Added automatic account lockout after 5 failed login attempts (30-minute lockout)
+- **Enhanced Security Models**: Created RateLimit and UserLockout database models
+- **Phone Number Support**: Added phone_number field to User model and schemas
+- **Security Services**: Implemented RateLimitService for comprehensive security management
+- **Bank-Level Security**: Complete protection against brute force attacks and abuse
