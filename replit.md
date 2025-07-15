@@ -121,6 +121,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes: Latest modifications with dates
 
+### July 15, 2025 - E-commerce API Cleanup & Simplification
+- **API Cleanup**: Removed duplicate and unnecessary authentication endpoints
+- **Simplified OTP System**: Unified password reset to single OTP-based flow
+- **E-commerce Ready**: Streamlined to 7 core endpoints for e-commerce use
+- **Simple Email OTP**: Added console-based OTP for development, Gmail-ready for production
+- **Clean Architecture**: Replaced complex auth router with simplified version
+- **Real-time Email**: Prepared system for Gmail SMTP integration
+- **Unified Flow**: Single `/send-reset-otp` and `/reset-password-otp` endpoints
+
 ### July 14, 2025 - Advanced Security Features Implementation
 - **SMS OTP Support**: Added Twilio integration for SMS-based OTP password reset
 - **Rate Limiting**: Implemented rate limiting for OTP requests (3 per hour) and login attempts (10 per hour)  

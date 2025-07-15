@@ -9,7 +9,7 @@ import logging
 
 from app.core.config import settings
 from app.core.database import engine, Base
-from app.routers import auth, users
+from app.routers import auth_simplified as auth, users
 from app.middleware.auth_middleware import AuthMiddleware
 from app.utils.exceptions import CustomHTTPException
 from app.utils.logger import setup_logging

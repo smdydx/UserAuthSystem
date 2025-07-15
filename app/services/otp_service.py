@@ -12,6 +12,7 @@ from app.models.otp import OTPVerification
 from app.models.user import User
 from app.utils.exceptions import CustomHTTPException
 from app.services.email_service import EmailService
+from app.services.simple_email_otp import SimpleEmailOTP
 from app.services.sms_service import SMSService
 
 logger = logging.getLogger(__name__)
@@ -23,6 +24,7 @@ class OTPService:
     def __init__(self, db: Session):
         self.db = db
         self.email_service = EmailService()
+        self.simple_email = SimpleEmailOTP()
         self.sms_service = SMSService()
     
     def generate_otp(self, length: int = 6) -> str:
@@ -64,15 +66,18 @@ class OTPService:
         self.db.add(otp_verification)
         self.db.commit()
         
-        # Send OTP via email
+        # Send OTP via email using simple service
         try:
-            self.email_service.send_password_reset_otp(
-                email=email,
-                full_name=user.full_name or user.email,
-                otp_code=otp_code
+            success = self.simple_email.send_otp_email(
+                to_email=email,
+                otp_code=otp_code,
+                user_name=user.full_name or user.email
             )
-            logger.info(f"Password reset OTP sent to: {email}")
-            return True
+            if success:
+                logger.info(f"Password reset OTP sent to: {email}")
+                return True
+            else:
+                raise Exception("Email service returned false")
         except Exception as e:
             logger.error(f"Failed to send OTP email: {str(e)}")
             # Mark OTP as used since email failed
@@ -158,6 +163,25 @@ class OTPService:
                 error_code="SMS_SEND_FAILED"
             )
     
+    def send_sms_otp_by_email(self, email: str) -> bool:
+        """
+        Send OTP via SMS using user's phone number from profile
+        """
+        # Find user
+        user = self.db.query(User).filter(User.email == email).first()
+        if not user:
+            return True  # Don't reveal if email exists
+        
+        if not user.phone_number:
+            raise CustomHTTPException(
+                status_code=400,
+                detail="No phone number found for this user",
+                error_code="NO_PHONE_NUMBER"
+            )
+        
+        # Use existing SMS OTP method
+        return self.send_sms_otp(email, user.phone_number)
+
     def verify_otp(self, email: str, otp_code: str) -> bool:
         """
         Verify OTP for password reset
