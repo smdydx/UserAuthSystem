@@ -51,8 +51,10 @@ class Settings(BaseSettings):
     BACKEND_CORS_ORIGINS: List[str] = [
         "http://localhost:3000",
         "http://localhost:8000",
+        "http://localhost:8080",
         "https://localhost:3000",
         "https://localhost:8000",
+        "https://localhost:8080",
     ]
     
     @validator("BACKEND_CORS_ORIGINS", pre=True)
