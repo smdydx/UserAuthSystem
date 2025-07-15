@@ -135,11 +135,11 @@ class APIClient {
     // Get current user
     async getCurrentUser() {
         try {
-            const response = await this.makeRequest('/users/me', {
+            const response = await this.makeRequest('/auth/me', {
                 method: 'GET',
                 headers: this.getAuthHeaders()
             });
-
+            
             if (response.ok) {
                 const data = await response.json();
                 return { success: true, data };
@@ -240,7 +240,7 @@ class APIClient {
     // Test protected endpoint
     async testProtectedEndpoint() {
         try {
-            const response = await this.makeRequest('/users/me', {
+            const response = await this.makeRequest('/auth/me', {
                 method: 'GET',
                 headers: this.getAuthHeaders()
             });

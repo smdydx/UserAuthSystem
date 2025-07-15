@@ -35,6 +35,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
         "/api/v1/auth/reset-password",
         "/api/v1/auth/verify-email",
         "/api/v1/auth/send-verification-email",
+        "/api/v1/auth/send-reset-otp",
+        "/api/v1/auth/reset-password-otp",
         "/api/v1/auth/health"
     }
     

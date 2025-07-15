@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Test</title>
+</head>
+<body>
+    <h1>Testing Login Flow</h1>
+    <button id="testBtn">Test Login</button>
+    <div id="result"></div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:5000/api/v1';
+        
+        document.getElementById('testBtn').addEventListener('click', async () => {
+            console.log('Testing login...');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'test@example.com',
+                        password: 'Test123!'
+                    })
+                });
+
+                console.log('Response status:', response.status);
+                const data = await response.json();
+                console.log('Response data:', data);
+                
+                if (response.ok) {
+                    localStorage.setItem('access_token', data.access_token);
+                    localStorage.setItem('refresh_token', data.refresh_token);
+                    
+                    // Test /users/me endpoint
+                    const userResponse = await fetch(`${API_BASE_URL}/users/me`, {
+                        headers: {
+                            'Authorization': `Bearer ${data.access_token}`
+                        }
+                    });
+                    
+                    console.log('User response status:', userResponse.status);
+                    const userData = await userResponse.json();
+                    console.log('User data:', userData);
+                    
+                    document.getElementById('result').innerHTML = `
+                        <h2>Login Success!</h2>
+                        <p>User: ${userData.full_name}</p>
+                        <p>Email: ${userData.email}</p>
+                        <p>Role: ${userData.role}</p>
+                    `;
+                } else {
+                    document.getElementById('result').innerHTML = `<h2>Login Failed: ${data.error}</h2>`;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('result').innerHTML = `<h2>Error: ${error.message}</h2>`;
+            }
+        });
+    </script>
+</body>
+</html>

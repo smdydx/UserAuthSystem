@@ -84,12 +84,15 @@ function checkAuth() {
     const accessToken = localStorage.getItem('access_token');
     if (accessToken) {
         loadDashboard();
+    } else {
+        showForm(loginForm);
     }
 }
 
 // Load dashboard
 async function loadDashboard() {
     const result = await api.getCurrentUser();
+    
     if (result.success) {
         // Show dashboard
         showForm(dashboard);
@@ -101,6 +104,7 @@ async function loadDashboard() {
         document.getElementById('userStatus').textContent = result.data.is_verified ? 'Verified' : 'Not Verified';
     } else {
         // Token expired or invalid
+        api.clearTokens(); // Clear invalid tokens
         showForm(loginForm);
     }
 }
