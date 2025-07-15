@@ -238,12 +238,12 @@ async def get_current_user(
     Requires valid JWT token
     """
     # User is set by auth middleware
-    if not hasattr(request.state, 'current_user') or not request.state.current_user:
+    if not hasattr(request.state, 'user') or not request.state.user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication required"
         )
-    return request.state.current_user
+    return request.state.user
 
 
 # ===== HEALTH CHECK =====
