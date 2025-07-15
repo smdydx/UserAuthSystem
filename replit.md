@@ -17,13 +17,7 @@ Preferred communication style: Simple, everyday language.
 - **Authentication**: JWT-based authentication with access and refresh tokens
 - **Authorization**: Role-based access control (RBAC) with middleware
 
-### Frontend Architecture
-- **Framework**: Vanilla JavaScript with HTML/CSS (Port 8080)
-- **Server**: Node.js HTTP server with CORS support
-- **API Client**: Complete API integration with automatic token refresh
-- **UI Design**: Modern gradient-based responsive design
-- **State Management**: localStorage for token persistence
-- **Error Handling**: User-friendly error messages and loading states
+
 
 ### Database Architecture
 - **ORM**: SQLAlchemy with declarative base models
@@ -129,17 +123,10 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes: Latest modifications with dates
 
-### July 15, 2025 - Frontend Creation & Dual-Port Architecture
-- **Frontend Folder**: Created complete frontend application with HTML/CSS/JS
-- **Dual-Port Setup**: Backend (5000) and Frontend (8080) on separate ports
-- **Modern UI**: Beautiful authentication interface with gradient design
-- **API Integration**: Complete API client with automatic token refresh
-- **Real-time Features**: Loading states, error handling, and success messages
-- **Authentication Flow**: Login, register, password reset, and dashboard
-- **Auto Token Refresh**: Seamless token management with localStorage
-- **CORS Configuration**: Updated backend to support frontend port 8080
-- **Node.js Server**: Custom server for frontend with proper MIME types
-- **Complete Documentation**: Comprehensive frontend README with usage instructions
+### July 15, 2025 - Frontend Removed (User Request)
+- **Frontend Folder**: Removed complete frontend application as per user request
+- **Single Port Setup**: Only backend running on port 5000
+- **API Ready**: Backend APIs remain ready for any frontend integration
 
 ### July 15, 2025 - E-commerce API Cleanup & Simplification
 - **API Cleanup**: Removed duplicate and unnecessary authentication endpoints
