@@ -39,8 +39,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Add custom auth middleware
+# Add custom middlewares
 app.add_middleware(AuthMiddleware)
+
+# Add compression middleware
+from app.middleware.compression_middleware import CompressionMiddleware, ResponseOptimizationMiddleware
+app.add_middleware(CompressionMiddleware, minimum_size=500)
+app.add_middleware(ResponseOptimizationMiddleware)
 
 # Exception handlers
 @app.exception_handler(CustomHTTPException)

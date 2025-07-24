@@ -3,7 +3,8 @@ Database configuration and session management
 """
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from typing import Generator
 import logging
 
@@ -11,24 +12,28 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-# Create SQLAlchemy engine
+# Sync database (for compatibility)
 engine = create_engine(
     settings.DATABASE_URL,
     connect_args={"check_same_thread": False} if "sqlite" in settings.DATABASE_URL else {},
     echo=False  # Set to True for SQL query logging
 )
 
-# Create SessionLocal class
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# Async database engine
+async_engine = create_async_engine(
+    settings.DATABASE_URL.replace("sqlite:///", "sqlite+aiosqlite:///") if "sqlite" in settings.DATABASE_URL else settings.DATABASE_URL,
+    echo=False
+)
 
-# Create Base class for models
+# Create sessions
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+AsyncSessionLocal = async_sessionmaker(async_engine, class_=AsyncSession, expire_on_commit=False)
+
+# Create base class
 Base = declarative_base()
 
-
+# Sync database dependency
 def get_db() -> Generator[Session, None, None]:
-    """
-    Database dependency that provides a database session
-    """
     db = SessionLocal()
     try:
         yield db
@@ -38,6 +43,18 @@ def get_db() -> Generator[Session, None, None]:
         raise
     finally:
         db.close()
+
+# Async database dependency
+async def get_async_db() -> Generator[AsyncSession, None, None]:
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+        except Exception as e:
+            logger.error(f"Async Database session error: {str(e)}")
+            await session.rollback()
+            raise
+        finally:
+            await session.close()
 
 
 def init_db() -> None:

@@ -31,6 +31,12 @@ class Settings(BaseSettings):
     # Database Settings
     DATABASE_URL: str = "sqlite:///./auth_system.db"  # Force SQLite for local development
     
+    # Database Pool Settings
+    DB_POOL_SIZE: int = 20
+    DB_MAX_OVERFLOW: int = 30
+    DB_POOL_TIMEOUT: int = 30
+    DB_POOL_RECYCLE: int = 3600
+    
     # Email Settings
     SMTP_HOST: str = os.getenv("SMTP_HOST", "smtp.gmail.com")
     SMTP_PORT: int = int(os.getenv("SMTP_PORT", "587"))
