@@ -68,13 +68,26 @@ async def general_exception_handler(request: Request, exc: Exception):
     )
 
 # Include routers
-app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
-app.include_router(users.router, prefix="/api/v1/users", tags=["Users"])
-app.include_router(categories.router, prefix="/api/v1", tags=["Categories & Tags"])
-app.include_router(products.router, prefix="/api/v1", tags=["Products"])
-app.include_router(discounts.router, prefix="/api/v1", tags=["Discounts"])
-app.include_router(cart.router, prefix="/api/v1", tags=["Cart & Wishlist"])
-app.include_router(orders.router, prefix="/api/v1", tags=["Orders & Checkout"])
+auth_router = auth.router
+user_router = users.router
+category_router = categories.router
+product_router = products.router
+discount_router = discounts.router
+cart_router = cart.router
+order_router = orders.router
+
+app.include_router(auth_router, prefix="/api/v1/auth", tags=["Authentication"])
+app.include_router(user_router, prefix="/api/v1/users", tags=["Users"])
+app.include_router(category_router, prefix="/api/v1", tags=["Categories & Tags"])
+app.include_router(product_router, prefix="/api/v1", tags=["Products"])
+app.include_router(discount_router, prefix="/api/v1", tags=["Discounts"])
+app.include_router(cart_router, prefix="/api/v1", tags=["Cart & Wishlist"])
+app.include_router(order_router, prefix="/api/v1", tags=["Orders & Checkout"])
+
+# Admin router
+from app.routers import admin
+admin_router = admin.router
+app.include_router(admin_router, prefix="/api/v1/admin", tags=["Admin"])
 
 # Health check endpoint
 @app.get("/health")
