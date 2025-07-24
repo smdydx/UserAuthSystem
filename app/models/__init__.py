@@ -10,6 +10,7 @@ from app.models.product import (
     ProductDiscount, ProductStatus, DiscountType,
     product_tag_associations
 )
+from app.models.cart import Cart, CartItem, SavedItem, CartEvent, CartStatus
 
 __all__ = [
     "User",
@@ -27,5 +28,10 @@ __all__ = [
     "ProductDiscount", 
     "ProductStatus", 
     "DiscountType",
-    "product_tag_associations"
+    "product_tag_associations",
+    "Cart",
+    "CartItem", 
+    "SavedItem",
+    "CartEvent",
+    "CartStatus"
 ]
