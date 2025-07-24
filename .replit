@@ -1,7 +1,7 @@
-modules = ["python-3.11", "nodejs-20"]
+modules = ["python-3.11", "nodejs-20", "web"]
 
 [nix]
-channel = "stable-24_05"
+channel = "stable-25_05"
 packages = ["libxcrypt"]
 
 [workflows]
@@ -22,7 +22,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "pip install fastapi uvicorn sqlalchemy alembic psycopg2-binary python-jose[cryptography] passlib[bcrypt] python-multipart email-validator pydantic pydantic[email] python-dotenv && python main.py"
+args = "pip install fastapi uvicorn sqlalchemy alembic psycopg2-binary python-jose[cryptography] passlib[bcrypt] python-multipart email-validator pydantic pydantic-settings python-dotenv sendgrid twilio && python main.py"
 waitForPort = 5000
 
 [[workflows.workflow]]
@@ -49,3 +49,6 @@ externalPort = 80
 [[ports]]
 localPort = 8080
 externalPort = 8080
+
+[agent]
+expertMode = true
