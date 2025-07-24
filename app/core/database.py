@@ -12,19 +12,17 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-# Create sync database URL
-sync_database_url = settings.DATABASE_URL.replace("sqlite+aiosqlite:///", "sqlite:///") if "sqlite" in settings.DATABASE_URL else settings.DATABASE_URL
-
 # Sync database (for compatibility)
 engine = create_engine(
-    sync_database_url,
-    connect_args={"check_same_thread": False} if "sqlite" in sync_database_url else {},
+    settings.DATABASE_URL,
+    connect_args={"check_same_thread": False} if "sqlite" in settings.DATABASE_URL else {},
     echo=False  # Set to True for SQL query logging
 )
 
-# Async database engine
+# Async database engine - Convert to aiosqlite for async operations
+async_database_url = settings.DATABASE_URL.replace("sqlite:///", "sqlite+aiosqlite:///") if "sqlite" in settings.DATABASE_URL else settings.DATABASE_URL
 async_engine = create_async_engine(
-    settings.DATABASE_URL,
+    async_database_url,
     echo=False
 )
 
