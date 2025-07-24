@@ -1,11 +1,11 @@
-modules = ["python-3.11", "nodejs-20", "web"]
+modules = ["python-3.11"]
 
 [nix]
 channel = "stable-25_05"
 packages = ["libxcrypt"]
 
 [workflows]
-runButton = "Debug FastAPI Server"
+runButton = "Project"
 
 [[workflows.workflow]]
 name = "Project"
@@ -22,7 +22,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "pip install fastapi uvicorn sqlalchemy alembic psycopg2-binary python-jose[cryptography] passlib[bcrypt] python-multipart email-validator pydantic pydantic-settings python-dotenv sendgrid twilio && python main.py"
+args = "pip install fastapi uvicorn sqlalchemy alembic psycopg2-binary python-jose[cryptography] passlib[bcrypt] python-multipart email-validator pydantic pydantic-settings python-dotenv sendgrid twilio aiosqlite brotli && python main.py"
 waitForPort = 5000
 
 [[workflows.workflow]]
