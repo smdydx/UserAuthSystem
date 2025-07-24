@@ -7,8 +7,13 @@ import logging
 import hashlib
 from enum import Enum
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+
+from sqlalchemy.orm import Session
+from fastapi import Request
 
 from app.core.config import settings
+from app.models.rate_limit import RateLimit, UserLockout
 
 logger = logging.getLogger(__name__)
 
