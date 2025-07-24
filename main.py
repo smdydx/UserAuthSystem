@@ -9,7 +9,7 @@ import logging
 
 from app.core.config import settings
 from app.core.database import engine, Base
-from app.routers import auth_simplified as auth, users, categories, products, discounts, cart
+from app.routers import auth_simplified as auth, users, categories, products, discounts, cart, orders
 from app.middleware.auth_middleware import AuthMiddleware
 from app.utils.exceptions import CustomHTTPException
 from app.utils.logger import setup_logging
@@ -70,12 +70,11 @@ async def general_exception_handler(request: Request, exc: Exception):
 # Include routers
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
 app.include_router(users.router, prefix="/api/v1/users", tags=["Users"])
-
-# Include product management routers
 app.include_router(categories.router, prefix="/api/v1", tags=["Categories & Tags"])
 app.include_router(products.router, prefix="/api/v1", tags=["Products"])
 app.include_router(discounts.router, prefix="/api/v1", tags=["Discounts"])
 app.include_router(cart.router, prefix="/api/v1", tags=["Cart & Wishlist"])
+app.include_router(orders.router, prefix="/api/v1", tags=["Orders & Checkout"])
 
 # Health check endpoint
 @app.get("/health")

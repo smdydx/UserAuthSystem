@@ -5,7 +5,7 @@ channel = "stable-25_05"
 packages = ["libxcrypt"]
 
 [workflows]
-runButton = "Project"
+runButton = "Start FastAPI Server"
 
 [[workflows.workflow]]
 name = "Project"
@@ -24,6 +24,15 @@ author = "agent"
 task = "shell.exec"
 args = "pip install fastapi uvicorn sqlalchemy alembic psycopg2-binary python-jose[cryptography] passlib[bcrypt] python-multipart email-validator pydantic pydantic-settings python-dotenv sendgrid twilio && python main.py"
 waitForPort = 5000
+
+[[workflows.workflow]]
+name = "Start FastAPI Server"
+author = 45441706
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python main.py"
 
 [[ports]]
 localPort = 3000

@@ -350,3 +350,179 @@ class EmailService:
         """
         
         return self._send_email(email, subject, html_content, text_content)
+
+    def send_order_confirmation(self, email: str, order_number: str, total: float, items: list) -> bool:
+        """Send order confirmation email"""
+        subject = f"Order Confirmation - {order_number}"
+        
+        items_html = ""
+        for item in items:
+            items_html += f"""
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid #ddd;">{item.product_name}</td>
+                <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;">{item.quantity}</td>
+                <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">₹{item.final_price}</td>
+                <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">₹{item.total_price}</td>
+            </tr>
+            """
+        
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>Order Confirmation</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                .header {{ background-color: #28a745; color: white; padding: 20px; text-align: center; }}
+                .content {{ padding: 30px; background-color: #f8f9fa; }}
+                .order-details {{ background-color: #fff; padding: 20px; border-radius: 5px; margin: 20px 0; }}
+                .items-table {{ width: 100%; border-collapse: collapse; margin: 20px 0; }}
+                .items-table th {{ background-color: #f8f9fa; padding: 10px; text-align: left; border-bottom: 2px solid #ddd; }}
+                .total-row {{ font-weight: bold; background-color: #f8f9fa; }}
+                .footer {{ padding: 20px; text-align: center; color: #666; font-size: 14px; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>🎉 Order Confirmed!</h1>
+                    <p>Order #{order_number}</p>
+                </div>
+                <div class="content">
+                    <div class="order-details">
+                        <h2>Order Details</h2>
+                        <table class="items-table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th style="text-align: center;">Qty</th>
+                                    <th style="text-align: right;">Price</th>
+                                    <th style="text-align: right;">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {items_html}
+                                <tr class="total-row">
+                                    <td colspan="3" style="padding: 15px; text-align: right;">Grand Total:</td>
+                                    <td style="padding: 15px; text-align: right;">₹{total}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p><strong>We'll send you shipping confirmation once your order is on the way!</strong></p>
+                    </div>
+                </div>
+                <div class="footer">
+                    <p>© 2025 {settings.PROJECT_NAME}. All rights reserved.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        return self._send_email(email, subject, html_content)
+
+    def send_order_status_update(self, email: str, order_number: str, status: str, tracking_number: str = None) -> bool:
+        """Send order status update notification"""
+        status_messages = {
+            "confirmed": "Your order has been confirmed and is being prepared.",
+            "processing": "Your order is being processed.",
+            "shipped": "Great news! Your order has been shipped.",
+            "delivered": "Your order has been delivered successfully.",
+            "cancelled": "Your order has been cancelled.",
+            "returned": "Your order return has been processed.",
+            "refunded": "Your order refund has been processed."
+        }
+        
+        subject = f"Order Update - {order_number}"
+        message = status_messages.get(status, f"Your order status has been updated to {status}.")
+        
+        tracking_info = ""
+        if tracking_number:
+            tracking_info = f"""
+            <div style="background-color: #d4edda; border: 1px solid #c3e6cb; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                <h3>📦 Tracking Information</h3>
+                <p><strong>Tracking Number:</strong> {tracking_number}</p>
+                <p>You can track your order using this number on our website.</p>
+            </div>
+            """
+        
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>Order Status Update</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                .header {{ background-color: #17a2b8; color: white; padding: 20px; text-align: center; }}
+                .content {{ padding: 30px; background-color: #f8f9fa; }}
+                .footer {{ padding: 20px; text-align: center; color: #666; font-size: 14px; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>📋 Order Update</h1>
+                    <p>Order #{order_number}</p>
+                </div>
+                <div class="content">
+                    <h2>Status: {status.title()}</h2>
+                    <p>{message}</p>
+                    {tracking_info}
+                </div>
+                <div class="footer">
+                    <p>© 2025 {settings.PROJECT_NAME}. All rights reserved.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        return self._send_email(email, subject, html_content)
+
+    def send_refund_notification(self, email: str, order_number: str, refund_number: str, amount: float) -> bool:
+        """Send refund notification email"""
+        subject = f"Refund Processed - {refund_number}"
+        
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>Refund Notification</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                .header {{ background-color: #28a745; color: white; padding: 20px; text-align: center; }}
+                .content {{ padding: 30px; background-color: #f8f9fa; }}
+                .refund-details {{ background-color: #d4edda; border: 1px solid #c3e6cb; padding: 20px; border-radius: 5px; margin: 20px 0; }}
+                .footer {{ padding: 20px; text-align: center; color: #666; font-size: 14px; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>💰 Refund Processed</h1>
+                </div>
+                <div class="content">
+                    <div class="refund-details">
+                        <h2>Refund Details</h2>
+                        <p><strong>Order Number:</strong> {order_number}</p>
+                        <p><strong>Refund Number:</strong> {refund_number}</p>
+                        <p><strong>Refund Amount:</strong> ₹{amount}</p>
+                    </div>
+                    <p>Your refund has been processed and will reflect in your account within 5-7 business days.</p>
+                    <p>If you have any questions, please contact our support team.</p>
+                </div>
+                <div class="footer">
+                    <p>© 2025 {settings.PROJECT_NAME}. All rights reserved.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        return self._send_email(email, subject, html_content)

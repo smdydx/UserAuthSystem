@@ -47,6 +47,7 @@ class User(Base):
     
     # Relationships
     refresh_tokens = relationship("RefreshToken", back_populates="user", cascade="all, delete-orphan")
+    orders = relationship("Order", back_populates="user")
     email_verification_tokens = relationship("EmailVerificationToken", back_populates="user", cascade="all, delete-orphan")
     password_reset_tokens = relationship("PasswordResetToken", back_populates="user", cascade="all, delete-orphan")
     otp_verifications = relationship("OTPVerification", back_populates="user", cascade="all, delete-orphan")
