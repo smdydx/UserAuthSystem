@@ -71,6 +71,12 @@ async def general_exception_handler(request: Request, exc: Exception):
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
 app.include_router(users.router, prefix="/api/v1/users", tags=["Users"])
 
+# Import and include product management routers
+from app.routers import categories, products, discounts
+app.include_router(categories.router, prefix="/api/v1", tags=["Categories & Tags"])
+app.include_router(products.router, prefix="/api/v1", tags=["Products"])
+app.include_router(discounts.router, prefix="/api/v1", tags=["Discounts"])
+
 # Health check endpoint
 @app.get("/health")
 async def health_check():
