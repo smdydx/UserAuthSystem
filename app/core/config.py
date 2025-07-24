@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     PASSWORD_REQUIRE_SPECIAL: bool = True
     
     # Database Settings
-    DATABASE_URL: str = "sqlite:///./auth_system.db"  # Force SQLite for local development
+    DATABASE_URL: str = "sqlite+aiosqlite:///./auth_system.db"  # Force SQLite for local development
     
     # Database Pool Settings
     DB_POOL_SIZE: int = 20

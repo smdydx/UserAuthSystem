@@ -5,7 +5,7 @@ channel = "stable-25_05"
 packages = ["libxcrypt"]
 
 [workflows]
-runButton = "Start FastAPI Server"
+runButton = "Debug FastAPI Server"
 
 [[workflows.workflow]]
 name = "Project"
@@ -33,6 +33,43 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "pkill -f \"python main.py\" || true"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python main.py"
+
+[[workflows.workflow]]
+name = "Debug FastAPI Server"
+author = 45441706
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "echo \"🔍 Checking Python version...\""
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python --version"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "echo \"📦 Installing dependencies...\""
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pip install fastapi uvicorn sqlalchemy alembic psycopg2-binary python-jose[cryptography] passlib[bcrypt] python-multipart email-validator pydantic pydantic-settings python-dotenv sendgrid twilio aiosqlite"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "echo \"🗃️ Creating database...\""
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python -c \"from app.core.database import init_db; init_db()\""
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "echo \"🚀 Starting server...\""
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
