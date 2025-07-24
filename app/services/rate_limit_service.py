@@ -36,7 +36,7 @@ class UserRateLimitTracker:
     burst_tokens: int = 0
     last_refill: float = field(default_factory=time.time)
 
-class AdvancedRateLimitService:
+class RateLimitService:
     """Service for managing rate limits and user lockouts"""
 
     @staticmethod
